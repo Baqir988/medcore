@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MedCore HMS — Scheduling Grid</title>
+
+    <script src="assets/js/theme.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="assets/css/medcore.css" />
+    <link rel="stylesheet" href="assets/css/scheduler.css" />
+</head>
+
+<body>
+
+    <div class="app-container">
+        <div class="sidebar-spacer"></div>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="nav-icon-wrapper"><svg width="24" height="24" viewBox="0 0 30 30" fill="none">
+                        <rect width="30" height="30" rx="7" fill="#4F7CAC" />
+                        <rect x="12" y="5" width="6" height="20" rx="1.5" fill="white" />
+                        <rect x="5" y="12" width="20" height="6" rx="1.5" fill="white" />
+                    </svg></div>
+                <span class="lora fade-text"
+                    style="font-size:1.125rem; color:var(--text-dark); font-weight:500;">MedCore <span
+                        style="font-size:0.875rem; color:var(--text-muted); font-family:'Inter', sans-serif;">HMS</span></span>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section-title fade-text">Reception Workspace</div>
+                <a href="dashboard.html" class="nav-item">
+                    <div class="nav-icon-wrapper"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg></div><span class="fade-text">Dashboard Hub</span>
+                </a>
+                <a href="schedule.html" class="nav-item active">
+                    <div class="nav-icon-wrapper"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg></div><span class="fade-text">Scheduling Grid</span>
+                </a>
+                <a href="patients.html" class="nav-item">
+                    <div class="nav-icon-wrapper"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg></div><span class="fade-text">Patient Directory</span>
+                </a>
+                <a href="queue.html" class="nav-item">
+                    <div class="nav-icon-wrapper"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg></div><span class="fade-text">Live Clinic Queue</span>
+                </a>
+
+                <div class="nav-section-title fade-text" style="margin-top: 1.5rem;">Administration</div>
+                <a href="financial.html" class="nav-item">
+                    <div class="nav-icon-wrapper"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg></div><span class="fade-text">Financial Center</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center;">
+                    <div class="user-avatar">AD</div>
+                    <div class="fade-text" style="overflow:hidden;">
+                        <p style="font-size:0.8125rem; font-weight:600; color:var(--text-dark);">System Admin</p>
+                        <p style="font-size:0.75rem; color:var(--text-muted);">ID: admin</p>
+                    </div>
+                </div>
+                <button id="themeToggleBtn" class="fade-text" onclick="toggleTheme()"
+                    style="background: transparent; border: none; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 50%; transition: color 0.2s;">
+                    <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <div class="main-wrapper">
+            <header class="top-header">
+                <div class="header-left">
+                    <div class="search-container">
+                        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <input type="text" class="search-input" placeholder="Search schedule..." />
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div
+                        style="font-size:0.875rem; font-weight:500; color:var(--text-mid); padding-right:1rem; border-right:1px solid var(--border-light);">
+                        <span id="header-time">10:24 AM</span>
+                        <span id="header-date-text"
+                            style="color:var(--text-muted); font-weight:400; margin-left:4px;">Jun 18, 2026</span>
+                    </div>
+                    <button class="btn-primary" onclick="openBookingPanel('','','')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg> New Appointment
+                    </button>
+                </div>
+            </header>
+
+            <main class="scheduler-container">
+                <div class="mini-calendar-panel">
+                    <div class="calendar-header">
+                        <div class="cal-arrow" onclick="changeMonth(-1)"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg></div>
+                        <span id="calendar-month-year">JUNE 2026</span>
+                        <div class="cal-arrow" onclick="changeMonth(1)"><svg width="18" height="18" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg></div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-days-grid"></div>
+                </div>
+
+                <div class="grid-area">
+                    <div class="grid-header-row">
+                        <div class="time-axis-spacer"></div>
+                        <div class="doctor-col-header">
+                            <div class="doctor-name">Dr. Mohammed</div>
+                            <div class="doctor-spec">General Practice</div>
+                        </div>
+                        <div class="doctor-col-header">
+                            <div class="doctor-name">Dr. Fatima</div>
+                            <div class="doctor-spec">Dental Surgery</div>
+                        </div>
+                        <div class="doctor-col-header">
+                            <div class="doctor-name">Dr. Roger</div>
+                            <div class="doctor-spec">Dermatology</div>
+                        </div>
+                        <div class="doctor-col-header">
+                            <div class="doctor-name">Dr. Sarah</div>
+                            <div class="doctor-spec">Pediatrics</div>
+                        </div>
+                        <div class="doctor-col-header">
+                            <div class="doctor-name">Dr. Ali</div>
+                            <div class="doctor-spec">Orthopedics</div>
+                        </div>
+                    </div>
+
+                    <div class="grid-scroll-area" id="grid-scroll-container">
+                        <div class="current-time-line" id="current-time-indicator">
+                            <div class="current-time-dot"></div>
+                        </div>
+                        <div class="grid-body-layout">
+                            <div class="time-axis" id="time-axis-container"></div>
+                            <div class="grid-matrix">
+                                <div class="horizontal-lines-container" id="horizontal-lines"></div>
+                                <div class="matrix-col" id="col-0"
+                                    onclick="handleColumnClick(event, 'Dr. Mohammed (General Practice)')"></div>
+                                <div class="matrix-col" id="col-1"
+                                    onclick="handleColumnClick(event, 'Dr. Fatima (Dental Surgery)')"></div>
+                                <div class="matrix-col" id="col-2"
+                                    onclick="handleColumnClick(event, 'Dr. Roger (Dermatology)')"></div>
+                                <div class="matrix-col" id="col-3"
+                                    onclick="handleColumnClick(event, 'Dr. Sarah (Pediatrics)')"></div>
+                                <div class="matrix-col" id="col-4"
+                                    onclick="handleColumnClick(event, 'Dr. Ali (Orthopedics)')"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="backdrop" class="panel-backdrop" onclick="closeBookingPanel()"></div>
+    <div id="bookingPanel" class="smart-modal">
+
+        <div class="panel-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span id="modal-header-text">Appointment Registration</span>
+            </div>
+            <button onclick="closeBookingPanel()"
+                style="background:none; border:none; color:var(--text-muted); cursor:pointer;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div class="panel-context-bar">
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <div class="context-search">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" placeholder="Search Patient..." style="border:none; outline:none; width:100%;"
+                        id="header-search-input">
+                </div>
+                <div style="display: flex; gap: 12px; font-size: 0.8125rem; font-weight: 500; color: var(--text-mid);">
+                    <label style="display: flex; align-items: center; gap: 4px;"><input type="checkbox"
+                            id="cb-new-patient" accent-color="var(--accent)" checked> New Patient</label>
+                    <label style="display: flex; align-items: center; gap: 4px;"><input type="checkbox"
+                            accent-color="var(--accent)"> Walk In Patient</label>
+                </div>
+            </div>
+            <div class="context-info">
+                Oman Insurance Company | <span style="font-weight: 600; color: var(--text-dark);">Oman - Oman Insurance
+                    Company</span> | General<br>
+                652365153128736212 | Expiry : 31/12/2027 | [INS012]
+            </div>
+        </div>
+
+        <div class="erp-tabs">
+            <div class="erp-tab active" onclick="switchTab('tab-appointment', this)">Appointment</div>
+            <div class="erp-tab" onclick="switchTab('tab-address', this)">Address</div>
+            <div class="erp-tab" onclick="switchTab('tab-highlights', this)">Patient Highlights</div>
+            <div class="erp-tab" onclick="switchTab('tab-history', this)">Visit History</div>
+            <div class="erp-tab" onclick="switchTab('tab-package', this)">Package History</div>
+            <div class="erp-tab" onclick="switchTab('tab-item', this)">Item Consumption</div>
+        </div>
+
+        <div class="panel-split-body">
+
+            <div class="pane-main">
+
+                <div id="tab-appointment" class="tab-pane active">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <span style="font-weight: 600; color: var(--text-dark); font-size: 0.9375rem;">Appointment
+                            Information</span>
+                        <span id="view-status-badge" class="status-badge badge-scheduled"
+                            style="display: none;">Scheduled</span>
+                    </div>
+
+                    <div class="radio-bar">
+                        <span
+                            style="font-size: 0.8125rem; font-weight: 600; color: var(--text-dark); margin-right: 12px;">Payment
+                            Mode</span>
+                        <label class="radio-label">
+                            <input type="radio" name="billing_mode" value="cash" checked
+                                onclick="setBillingMode('cash')"> Cash
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="billing_mode" value="insurance"
+                                onclick="setBillingMode('insurance')"> Insurance
+                        </label>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem;">
+                        <div>
+                            <label class="modal-label">Patient Name <span style="color: var(--danger);">*</span></label>
+                            <input type="text" class="input" id="reg-patient-name" placeholder="e.g. Hashir Asad"
+                                required />
+                        </div>
+                        <div>
+                            <label class="modal-label">Emirates ID / Passport No. <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="text" class="input" id="reg-patient-id" placeholder="NID-XXXXXX" required />
+                        </div>
+                        <div>
+                            <label class="modal-label">Phone Number <span style="color: var(--danger);">*</span></label>
+                            <input type="tel" class="input" id="reg-patient-phone" placeholder="+971 50 000 0000"
+                                required />
+                        </div>
+                        <div>
+                            <label class="modal-label">DOB <span style="color: var(--danger);">*</span></label>
+                            <input type="date" class="input" id="reg-patient-dob" required />
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-light); padding-bottom: 2rem;">
+                        <div>
+                            <label class="modal-label">Residential</label>
+                            <select class="input" id="reg-patient-resident">
+                                <option value="yes" selected>Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label">Photo ID Type</label>
+                            <select class="input">
+                                <option value="eid" selected>Emirates ID</option>
+                                <option value="passport">Passport</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="insurance-details-section"
+                        style="display: none; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-light); padding-bottom: 2rem;">
+                        <div>
+                            <label class="modal-label">Insurance Company <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="text" class="input" id="reg-insurance-company" placeholder="e.g. Porchest" />
+                        </div>
+                        <div>
+                            <label class="modal-label">Insurance Type <span
+                                    style="color: var(--danger);">*</span></label>
+                            <input type="text" class="input" id="reg-insurance-type" placeholder="e.g. Comprehensive" />
+                        </div>
+                        <div>
+                            <label class="modal-label">Expiry Date <span style="color: var(--danger);">*</span></label>
+                            <input type="date" class="input" id="reg-insurance-expiry" />
+                        </div>
+                        <div>
+                            <label class="modal-label">CoPay (AED) <span style="color: var(--danger);">*</span></label>
+                            <input type="number" class="input" id="reg-insurance-copay" min="20"
+                                placeholder="Min 20 AED" />
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                        <div>
+                            <label class="modal-label">Attending Doctor</label>
+                            <select class="input" id="panel-doc-input">
+                                <option value="Dr. Mohammed (General Practice)">Dr. Mohammed (General Practice)</option>
+                                <option value="Dr. Fatima (Dental Surgery)">Dr. Fatima (Dental Surgery)</option>
+                                <option value="Dr. Roger (Dermatology)">Dr. Roger (Dermatology)</option>
+                                <option value="Dr. Sarah (Pediatrics)">Dr. Sarah (Pediatrics)</option>
+                                <option value="Dr. Ali (Orthopedics)">Dr. Ali (Orthopedics)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label">Date</label>
+                            <input type="date" class="input" id="panel-date-input" />
+                        </div>
+                        <div>
+                            <label class="modal-label">Time</label>
+                            <select class="input" id="panel-time-input"></select>
+                        </div>
+                        <div>
+                            <label class="modal-label">Duration</label>
+                            <select class="input" id="panel-duration-input">
+                                <option value="30">30 minutes</option>
+                                <option value="45" selected>45 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <label class="modal-label">Reason for Visit</label>
+                            <textarea class="input" id="panel-reason-input"
+                                placeholder="Enter brief medical complaint..."
+                                style="resize:vertical; min-height:60px;"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-address" class="tab-pane">
+                    <span
+                        style="display: block; font-weight: 600; color: var(--text-dark); font-size: 0.9375rem; margin-bottom: 1.5rem;">Contact
+                        & Address Details (UAE Format)</span>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                        <div>
+                            <label class="modal-label">Building / Villa / Apt No.</label>
+                            <input type="text" class="input" placeholder="e.g. Apt 402, Rose Tower" />
+                        </div>
+                        <div>
+                            <label class="modal-label">Street Name / No.</label>
+                            <input type="text" class="input" placeholder="e.g. Sheikh Zayed Road" />
+                        </div>
+
+                        <div>
+                            <label class="modal-label">Area / Community</label>
+                            <input type="text" class="input" placeholder="e.g. Downtown Dubai, Al Barsha" />
+                        </div>
+                        <div>
+                            <label class="modal-label">PO Box / Makani No.</label>
+                            <input type="text" class="input" placeholder="e.g. PO Box 12345" />
+                        </div>
+
+                        <div>
+                            <label class="modal-label">Emirate (Province/Region)</label>
+                            <select class="input">
+                                <option>Abu Dhabi</option>
+                                <option selected>Dubai</option>
+                                <option>Sharjah</option>
+                                <option>Ajman</option>
+                                <option>Umm Al Quwain</option>
+                                <option>Ras Al Khaimah</option>
+                                <option>Fujairah</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="modal-label">Country</label>
+                            <input type="text" class="input" value="United Arab Emirates" disabled
+                                style="background:var(--bg-aesthetic);" />
+                        </div>
+
+                        <div
+                            style="grid-column: span 2; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-light);">
+                            <label class="modal-label">Emergency Contact Name & Relation</label>
+                            <input type="text" class="input" placeholder="e.g. John Doe - Father" />
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-highlights" class="tab-pane">
+                    <span
+                        style="display: block; font-weight: 600; color: var(--text-dark); font-size: 0.9375rem; margin-bottom: 1.5rem;">Clinical
+                        Profile & Encounters</span>
+
+                    <div
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; border-bottom: 1px solid var(--border-light); padding-bottom: 2rem;">
+                        <div style="grid-column: span 2;">
+                            <label class="modal-label" style="color: var(--danger);">Critical Alerts / Known
+                                Allergies</label>
+                            <div id="dyn-allergies"
+                                style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; min-height: 28px;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="modal-label">Blood Group</label>
+                            <div id="dyn-blood-group"
+                                style="display: flex; align-items: center; margin-top: 4px; min-height: 32px;">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="modal-label">Chronic Conditions</label>
+                            <div id="dyn-conditions"
+                                style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; min-height: 32px;">
+                            </div>
+                        </div>
+
+                        <div style="grid-column: span 2;">
+                            <label class="modal-label">Recent Vitals <span id="dyn-vitals-date"
+                                    style="text-transform: none; font-weight: 400; color: var(--text-muted);"></span></label>
+                            <div id="dyn-vitals"
+                                style="display: flex; gap: 2rem; margin-top: 6px; background: var(--bg-canvas); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border-light); min-height: 44px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span
+                            style="display: block; font-weight: 600; color: var(--text-dark); font-size: 0.875rem; margin-bottom: 1.25rem;">Encounter
+                            History</span>
+                        <div
+                            style="border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; max-height: 260px; overflow-y: auto;">
+                            <table
+                                style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.8125rem;">
+                                <thead
+                                    style="background: var(--bg-aesthetic); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; position: sticky; top: 0; z-index: 10;">
+                                    <tr>
+                                        <th
+                                            style="padding: 10px 16px; border-bottom: 1px solid var(--border-light); width: 120px;">
+                                            Date</th>
+                                        <th style="padding: 10px 16px; border-bottom: 1px solid var(--border-light);">
+                                            Diagnosis / Reason</th>
+                                        <th style="padding: 10px 16px; border-bottom: 1px solid var(--border-light);">
+                                            Attending Provider</th>
+                                        <th
+                                            style="padding: 10px 16px; border-bottom: 1px solid var(--border-light); text-align: right;">
+                                            Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dyn-encounters">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tab-history" class="tab-pane">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <span style="font-weight: 600; color: var(--text-dark); font-size: 0.9375rem;">Past Clinical
+                            Visits</span>
+                    </div>
+                    <div
+                        style="border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; max-height: 340px; overflow-y: auto;">
+                        <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.8125rem;">
+                            <thead
+                                style="background: var(--bg-aesthetic); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; position: sticky; top: 0; z-index: 10;">
+                                <tr>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Date</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Provider &
+                                        Dept</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Diagnosis
+                                    </th>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Status</th>
+                                    <th
+                                        style="padding: 12px; border-bottom: 1px solid var(--border-light); text-align: right;">
+                                        Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dyn-visit-history">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-package" class="tab-pane">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <span style="font-weight: 600; color: var(--text-dark); font-size: 0.9375rem;">Insurance &
+                            Package History</span>
+                    </div>
+                    <div
+                        style="border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; max-height: 340px; overflow-y: auto;">
+                        <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.8125rem;">
+                            <thead
+                                style="background: var(--bg-aesthetic); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; position: sticky; top: 0; z-index: 10;">
+                                <tr>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Insurance /
+                                        Scheme</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Activation
+                                    </th>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Expiration
+                                    </th>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Usage /
+                                        Limits</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid var(--border-light);">Status</th>
+                                    <th
+                                        style="padding: 12px; border-bottom: 1px solid var(--border-light); text-align: right;">
+                                        Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dyn-package-history">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="tab-item" class="tab-pane">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <span style="font-weight: 600; color: var(--text-dark); font-size: 0.9375rem;">Item Consumption &amp; Billing Ledger</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 500; letter-spacing: 0.02em;">All amounts in AED</span>
+                    </div>
+                    <div style="border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; max-height: 380px; overflow-y: auto;">
+                        <table style="width: 100%; text-align: left; border-collapse: collapse; font-size: 0.8125rem; table-layout: fixed;">
+                            <colgroup>
+                                <col style="width: 44px;">
+                                <col style="width: 88px;">
+                                <col style="width: auto;">
+                                <col style="width: 48px;">
+                                <col style="width: 76px;">
+                                <col style="width: 80px;">
+                                <col style="width: 76px;">
+                                <col style="width: 86px;">
+                                <col style="width: 68px;">
+                                <col style="width: 92px;">
+                                <col style="width: 88px;">
+                            </colgroup>
+                            <thead style="background: var(--bg-aesthetic); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; font-size: 0.6875rem; position: sticky; top: 0; z-index: 10;">
+                                <tr>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center;">S.No</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light);">Inv. Date</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light);">Invoice No. &amp; Item</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center;">Qty</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">Rate</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">Total</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">Discount</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">Net Amt</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">VAT 5%</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">Gross Amt</th>
+                                    <th style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">Paid Amt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Row 1: Qty(3) × Rate(45.00) = 135.00 − Disc(10.00) = Net(125.00) + VAT 5%(6.25) = Gross(131.25) -->
+                                <tr>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center; color: var(--text-muted); font-weight: 500;">1</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); font-weight: 500; white-space: nowrap;">12 Jan 2026</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light);">
+                                        <div style="font-weight: 600; color: var(--text-dark); font-size: 0.8125rem; line-height: 1.3;">INV-2026-00418</div>
+                                        <div style="color: var(--text-muted); font-size: 0.75rem; line-height: 1.3; margin-top: 1px;">Lidocaine Injection 2% (Anesthesia)</div>
+                                    </td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center; font-weight: 500;">3</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">45.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">135.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">10.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">125.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">6.25</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right; font-weight: 600; color: var(--text-dark);">131.25</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right; font-weight: 600; color: var(--text-dark);">131.25</td>
+                                </tr>
+                                <!-- Row 2: Qty(5) × Rate(12.50) = 62.50 − Disc(0.00) = Net(62.50) + VAT 5%(3.13) = Gross(65.63) -->
+                                <tr>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center; color: var(--text-muted); font-weight: 500;">2</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); font-weight: 500; white-space: nowrap;">05 Nov 2025</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light);">
+                                        <div style="font-weight: 600; color: var(--text-dark); font-size: 0.8125rem; line-height: 1.3;">INV-2025-03291</div>
+                                        <div style="color: var(--text-muted); font-size: 0.75rem; line-height: 1.3; margin-top: 1px;">Sterile Gauze Pad 4×4 (Wound Care)</div>
+                                    </td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center; font-weight: 500;">5</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">12.50</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">62.50</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">0.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">62.50</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">3.13</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right; font-weight: 600; color: var(--text-dark);">65.63</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right; font-weight: 600; color: var(--text-dark);">65.63</td>
+                                </tr>
+                                <!-- Row 3: Qty(1) × Rate(350.00) = 350.00 − Disc(25.00) = Net(325.00) + VAT 5%(16.25) = Gross(341.25) -->
+                                <tr>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center; color: var(--text-muted); font-weight: 500;">3</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); font-weight: 500; white-space: nowrap;">05 Nov 2025</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light);">
+                                        <div style="font-weight: 600; color: var(--text-dark); font-size: 0.8125rem; line-height: 1.3;">INV-2025-03292</div>
+                                        <div style="color: var(--text-muted); font-size: 0.75rem; line-height: 1.3; margin-top: 1px;">General Consultation Fee — Dermatology</div>
+                                    </td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: center; font-weight: 500;">1</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">350.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">350.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">25.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">325.00</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right;">16.25</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right; font-weight: 600; color: var(--text-dark);">341.25</td>
+                                    <td style="padding: 10px 10px; border-bottom: 1px solid var(--border-light); text-align: right; font-weight: 600; color: var(--success-text);">300.00</td>
+                                </tr>
+                            </tbody>
+                            <tfoot style="background: var(--bg-aesthetic); font-weight: 700; font-size: 0.8125rem; color: var(--text-dark); position: sticky; bottom: 0; z-index: 10;">
+                                <tr>
+                                    <td colspan="7" style="padding: 12px 10px; border-top: 2px solid var(--border-light); text-align: right; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.6875rem; color: var(--text-muted);">Grand Total</td>
+                                    <td style="padding: 12px 10px; border-top: 2px solid var(--border-light); text-align: right;">512.50</td>
+                                    <td style="padding: 12px 10px; border-top: 2px solid var(--border-light); text-align: right;">25.63</td>
+                                    <td style="padding: 12px 10px; border-top: 2px solid var(--border-light); text-align: right; font-weight: 700; color: var(--text-dark);">538.13</td>
+                                    <td style="padding: 12px 10px; border-top: 2px solid var(--border-light); text-align: right; font-weight: 700; color: var(--text-dark);">496.88</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="pane-sidebar">
+                <div style="text-align: right; padding-bottom: 1rem; border-bottom: 1px solid var(--border-light);">
+                    <div style="font-weight: 700; color: var(--text-dark); font-size: 0.9375rem;" id="side-pt-name">New
+                        Patient</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;" id="side-pt-details">
+                        Enter details to generate summary</div>
+                </div>
+
+                <!-- Notification Action Buttons -->
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px;">Notifications</div>
+                    <button
+                        id="btn-trigger-sms"
+                        onclick="(function(){ const name = document.getElementById('side-pt-name').innerText; alert('SMS Notification stub initialized for: ' + name); })()"
+                        style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 0.625rem 1rem; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-dark); font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-align: left;"
+                        onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--accent)'; this.style.background='var(--info-bg)';"
+                        onmouseout="this.style.borderColor='var(--border-light)'; this.style.color='var(--text-dark)'; this.style.background='var(--bg-surface)';">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Trigger SMS Notification
+                    </button>
+                    <button
+                        id="btn-trigger-whatsapp"
+                        onclick="(function(){ const name = document.getElementById('side-pt-name').innerText; alert('WhatsApp Alert stub initialized for: ' + name); })()"
+                        style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 0.625rem 1rem; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-dark); font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-align: left;"
+                        onmouseover="this.style.borderColor='#22C55E'; this.style.color='#22C55E'; this.style.background='rgba(34,197,94,0.06)';"
+                        onmouseout="this.style.borderColor='var(--border-light)'; this.style.color='var(--text-dark)'; this.style.background='var(--bg-surface)';">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.07 3.18 2 2 0 0 1 3 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"></path>
+                        </svg>
+                        Send WhatsApp Alert
+                    </button>
+                </div>
+
+                <button class="btn-secondary"
+                    style="width: 100%; justify-content: center; font-weight: 600; color: var(--accent); border-color: var(--accent);">FETCH
+                    DATA FROM CARD</button>
+
+                <div
+                    style="margin-top: auto; background: var(--bg-surface); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-light);">
+                    <div class="finance-row"><span>Advance</span> <span
+                            style="color: var(--success-text);">1,000.00</span></div>
+                    <div class="finance-row" style="border-bottom: none;"><span>Overdue</span> <span
+                            style="color: var(--danger);">7,156.80</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-footer" id="panel-footer-actions"></div>
+    </div>
+
+    <script src="assets/js/scheduler/data.js"></script>
+    <script src="assets/js/scheduler/grid.js"></script>
+    <script src="assets/js/scheduler/modal.js"></script>
+</body>
+
+</html>

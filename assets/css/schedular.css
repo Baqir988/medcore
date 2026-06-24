@@ -1,0 +1,343 @@
+/* ── MAIN SCHEDULER GRID ── */
+.scheduler-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    background: var(--bg-canvas);
+}
+
+/* The Mini-Calendar (Left Panel) */
+.mini-calendar-panel {
+    width: 280px;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    z-index: 10;
+    transition: background-color 0.2s ease;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 1.5rem 1rem;
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+}
+
+.cal-arrow {
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.cal-arrow:hover {
+    background: var(--bg-aesthetic);
+    color: var(--text-dark);
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    padding: 0 1.25rem 1.5rem;
+    text-align: center;
+    font-size: 0.8125rem;
+}
+
+.calendar-day-name {
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.calendar-date {
+    margin: 0 auto;
+    border-radius: 50%;
+    color: var(--text-dark);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+}
+
+.calendar-date:hover:not(.active):not(.faded) {
+    background: var(--bg-aesthetic);
+    color: var(--accent);
+}
+
+.calendar-date.active {
+    background: var(--accent);
+    color: #FFFFFF;
+}
+
+.calendar-date.faded {
+    color: var(--text-muted);
+    opacity: 0.3;
+    font-weight: 400;
+}
+
+.calendar-date.faded:hover {
+    background: var(--bg-aesthetic);
+    opacity: 0.8;
+}
+
+.grid-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-surface);
+    transition: background-color 0.2s ease;
+}
+
+.grid-header-row {
+    display: flex;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-surface);
+    flex-shrink: 0;
+    z-index: 5;
+    transition: background-color 0.2s ease;
+}
+
+.time-axis-spacer {
+    width: 70px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-light);
+    background: var(--bg-surface);
+}
+
+/* The Doctor Column Headers (Top Row) */
+.doctor-col-header {
+    flex: 1;
+    text-align: center;
+    padding: 1rem 0;
+    border-right: 1px solid var(--border-light);
+    background: var(--bg-aesthetic);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.doctor-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    font-size: 0.875rem;
+}
+
+.doctor-spec {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.grid-scroll-area {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    scroll-behavior: smooth;
+}
+
+.grid-body-layout {
+    display: flex;
+    position: relative;
+    height: calc(9 * var(--hour-height));
+}
+
+/* The Time Axis & Grid Matrix */
+.time-axis {
+    width: 70px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border-light);
+    position: relative;
+    background: var(--bg-surface);
+    z-index: 2;
+    transition: background-color 0.2s ease;
+}
+
+.time-slot-label {
+    position: absolute;
+    width: 100%;
+    text-align: right;
+    padding-right: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transform: translateY(-50%);
+}
+
+.grid-matrix {
+    flex: 1;
+    position: relative;
+    display: flex;
+}
+
+.matrix-col {
+    flex: 1;
+    border-right: 1px solid var(--border-light);
+    position: relative;
+    cursor: crosshair;
+    transition: background 0.15s;
+}
+
+.matrix-col:hover {
+    background: var(--bg-aesthetic);
+    opacity: 0.5;
+}
+
+.horizontal-lines-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.hour-line {
+    position: absolute;
+    width: 100%;
+    border-top: 1px solid var(--border-light);
+    opacity: 0.4;
+}
+
+.half-hour-line {
+    position: absolute;
+    width: 100%;
+    border-top: 1px dashed var(--border-light);
+    opacity: 0.15;
+}
+
+/* The Current Time Indicator */
+.current-time-line {
+    position: absolute;
+    left: 70px;
+    right: 0;
+    border-top: 1px solid var(--danger);
+    z-index: 10;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    transition: top 1s linear;
+}
+
+.current-time-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--danger);
+    border-radius: 50%;
+    margin-left: -3px;
+    margin-top: -3.5px;
+    box-shadow: 0 0 8px 2px rgba(239, 68, 68, 0.4);
+}
+
+/* ── SCHEDULER BLOCKS ── */
+.appointment-block {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    overflow: hidden;
+    z-index: 5;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    border-left: 4px solid;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.appointment-block:not(.app-status-completed):not(.app-status-past):not(.app-status-cancelled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    z-index: 6;
+}
+
+.app-status-scheduled {
+    border-left-color: var(--accent);
+    background: var(--info-bg);
+}
+
+.app-status-arrived {
+    border-left-color: var(--success-text);
+    background: var(--success-bg);
+}
+
+.app-status-warning {
+    border-left-color: var(--warning-text);
+    background: var(--warning-bg);
+}
+
+.app-status-completed,
+.app-status-past {
+    border-left-color: var(--border-light);
+    background: var(--bg-aesthetic);
+    opacity: 0.6;
+    background-image: repeating-linear-gradient(45deg, var(--bg-surface), var(--bg-surface) 10px, var(--bg-aesthetic) 10px, var(--bg-aesthetic) 20px);
+}
+
+.app-status-completed:hover,
+.app-status-past:hover {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.app-status-cancelled {
+    border-left-color: var(--danger);
+    opacity: 0.6;
+    background-image: repeating-linear-gradient(45deg, var(--bg-surface), var(--bg-surface) 10px, var(--danger-bg) 10px, var(--danger-bg) 20px);
+}
+
+/* Text Contrast */
+.app-title {
+    font-weight: 600;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    color: var(--text-dark);
+}
+
+.app-detail {
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
+    color: var(--text-mid);
+}
+
+.app-status-completed .app-title,
+.app-status-past .app-title {
+    color: var(--text-dark);
+}
+
+.app-status-completed .app-detail,
+.app-status-past .app-detail {
+    color: var(--text-mid);
+}
+
+.app-status-cancelled .app-title,
+.app-status-cancelled .app-detail {
+    text-decoration: none;
+    color: var(--text-mid);
+}
