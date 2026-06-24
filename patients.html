@@ -14,32 +14,43 @@
     <style>
         /* Directory Specific Styles */
         .directory-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-        .active-pill { background: var(--success-bg); color: var(--success-text); border: 1px solid #D1FAE5; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .active-pill { background: var(--success-bg); color: var(--success-text); border: 1px solid rgba(52, 211, 153, 0.3); padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         .active-dot { width: 6px; height: 6px; background: var(--success-text); border-radius: 50%; }
 
         .table-card { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(31, 41, 55, 0.04); display: flex; flex-direction: column; }
-        .card-toolbar { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: flex-end; align-items: center; background: #FFFFFF; }
+        .card-toolbar { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); }
         
         .toolbar-filters { display: flex; gap: 1rem; align-items: center; }
         .seg-control { display: flex; background: var(--bg-canvas); border: 1px solid var(--border-light); border-radius: 8px; padding: 3px; }
         .seg-btn { padding: 6px 16px; font-size: 0.75rem; font-weight: 500; color: var(--text-mid); background: transparent; border: none; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-        .seg-btn.active { background: #FFFFFF; color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .seg-btn.active { background: var(--bg-surface); color: var(--text-dark); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
         
-        select.dropdown-filter { font-size: 0.8125rem; font-weight: 500; padding: 8px 36px 8px 16px; border: 1px solid var(--border-light); border-radius: 8px; background-color: #F8FAFC; color: var(--text-dark); outline: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px; cursor: pointer; transition: all 0.2s ease; }
-        select.dropdown-filter:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 124, 172, 0.15); background-color: #FFFFFF; }
+        select.dropdown-filter { font-size: 0.8125rem; font-weight: 500; padding: 8px 36px 8px 16px; border: 1px solid var(--border-light); border-radius: 8px; background-color: var(--bg-canvas); color: var(--text-dark); outline: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234B5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 12px center; background-size: 14px; cursor: pointer; transition: all 0.2s ease; }
+        select.dropdown-filter:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 124, 172, 0.15); }
 
         .data-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .data-table th { background: #FFFFFF; padding: 1rem 1.25rem; font-size: 0.6875rem; text-transform: uppercase; font-weight: 600; color: #6B7280; border-bottom: 1px solid var(--border-light); }
-        .data-table td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); font-size: 0.8125rem; color: var(--text-dark); vertical-align: middle; background: #FFFFFF; transition: background 0.15s ease; }
-        .data-table tbody tr.main-patient-row:hover td { background: rgba(241, 245, 249, 0.6); }
+        .data-table th { background: var(--bg-aesthetic); padding: 1rem 1.25rem; font-size: 0.6875rem; text-transform: uppercase; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border-light); letter-spacing: 0.05em; }
+        .data-table td { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-light); font-size: 0.8125rem; color: var(--text-dark); vertical-align: top; background: var(--bg-surface); transition: background 0.2s ease; }
+        .data-table tbody tr.main-patient-row:hover td { background: var(--bg-aesthetic); }
         
-        .mrn-text { color: var(--accent); font-weight: 600; font-size: 0.75rem; }
-        .pt-name-wrap { display: flex; align-items: center; gap: 12px; }
-        .pt-avatar-sm { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6875rem; font-weight: 600; flex-shrink: 0; }
+        /* Removed bottom border when expanded to make it look like one card */
+        .data-table tbody tr.main-patient-row:has(+ .expanded-row.show) td { border-bottom: none; }
+        
+        .mrn-text { color: var(--text-dark); font-weight: 700; font-size: 0.8125rem; display: block; margin-bottom: 4px; }
+        .eid-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 0.6875rem; font-weight: 600; padding: 2px 6px; border-radius: 4px; border: 1px solid; }
+        .eid-verified { background: var(--success-bg); color: var(--success-text); border-color: rgba(52, 211, 153, 0.3); }
+        .eid-warning { background: var(--warning-bg); color: var(--warning-text); border-color: rgba(251, 191, 36, 0.3); }
+
+        .pt-name-wrap { display: flex; align-items: flex-start; gap: 12px; }
+        .pt-avatar-sm { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
         .avatar-blue { background: #E0E7FF; color: #3730A3; }
         .avatar-orange { background: #FFEDD5; color: #B45309; }
         .avatar-green { background: #D1FAE5; color: #065F46; }
-        .pt-name-text { font-weight: 600; color: var(--text-dark); font-size: 0.875rem; }
+        .pt-name-text { font-weight: 600; color: var(--text-dark); font-size: 0.9375rem; display: block; margin-bottom: 2px; }
+
+        .live-status-text { font-size: 0.6875rem; font-weight: 600; color: var(--accent); display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+        
+        .ins-badge { display: inline-block; font-size: 0.75rem; font-weight: 600; color: var(--text-mid); background: var(--bg-canvas); border: 1px solid var(--border-light); padding: 4px 8px; border-radius: 6px; margin-bottom: 4px; }
 
         .clinical-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 0.6875rem; font-weight: 600; }
         .tag-maternity { background: #FCE7F3; color: #BE185D; border: 1px solid #FBCFE8; }
@@ -48,28 +59,35 @@
         .doc-badge-roger { background: #FEF3C7; color: #D97706; }
         .doc-badge-ali { background: #DBEAFE; color: #1D4ED8; }
         
-        .actions-cell { display: flex; align-items: center; justify-content: flex-end; gap: 6px; }
-        .btn-outline { border: 1px solid var(--border-light); background: #FFFFFF; color: var(--text-dark); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-        .btn-outline:hover { background: var(--bg-canvas); border-color: #C8D5E3; }
-        .btn-light-accent { background: var(--bg-aesthetic); color: var(--accent); border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
-        .btn-light-accent:hover { background: #D3DDEB; }
-        .icon-btn { background: transparent; border: none; color: var(--text-muted); padding: 4px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
-        .icon-btn:hover { background: var(--bg-aesthetic); color: var(--accent); }
+        .actions-cell { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+        
+        .btn-action-icon { background: var(--bg-canvas); border: 1px solid var(--border-light); color: var(--text-mid); padding: 6px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .btn-action-icon:hover { background: var(--accent); color: #FFFFFF; border-color: var(--accent); }
+        
+        .btn-outline { border: 1px solid var(--border-light); background: var(--bg-surface); color: var(--text-dark); padding: 6px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .btn-outline:hover { background: var(--bg-canvas); border-color: var(--text-muted); }
 
         .expanded-row { display: none; }
         .expanded-row.show { display: table-row; }
-        .expanded-row td { padding: 0 !important; background: #F8FAFC !important; border-bottom: 1px solid var(--border-light); }
-        .detail-wrapper { padding: 1.5rem 2rem 1.5rem 13.5rem; }
-        .detail-container { border-left: 3px solid var(--accent); padding-left: 1.5rem; }
-        .detail-label { font-size: 0.6875rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: block; }
-        .note-card { background: #FFFFFF; border: 1px solid var(--border-light); border-radius: 8px; padding: 1.25rem; box-shadow: 0 2px 8px rgba(31, 41, 55, 0.04); }
+        .expanded-row td { padding: 0 !important; background: var(--bg-surface) !important; border-bottom: 1px solid var(--border-light); }
+        .detail-wrapper { padding: 0 2rem 1.5rem 2rem; }
+        .detail-container { background: var(--bg-canvas); border: 1px solid var(--border-light); border-radius: 8px; padding: 1.5rem; border-left: 4px solid var(--accent); display: flex; gap: 2rem; }
+        
+        .detail-section { flex: 1; }
+        .detail-label { font-size: 0.6875rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 12px; display: block; letter-spacing: 0.05em; }
+        
+        .note-card { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 8px; padding: 1rem; }
         .note-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .note-tag { background: #F1F5F9; color: #475569; font-size: 0.6875rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+        .note-tag { background: var(--info-bg); color: var(--info-text); font-size: 0.6875rem; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
         .note-meta { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
         .note-body { font-size: 0.875rem; color: var(--text-dark); line-height: 1.6; }
 
-        .table-footer { padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; font-size: 0.8125rem; color: var(--text-muted); }
-        .page-btn { padding: 6px 10px; border: 1px solid var(--border-light); background: #FFFFFF; border-radius: 6px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; }
+        .quick-action-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: 6px; font-size: 0.8125rem; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+        .quick-action-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--info-bg); }
+
+        .table-footer { padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); font-size: 0.8125rem; color: var(--text-muted); }
+        .page-btn { padding: 6px 10px; border: 1px solid var(--border-light); background: var(--bg-surface); border-radius: 6px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; font-weight: 500; transition: all 0.2s; }
+        .page-btn:hover:not(.active) { background: var(--bg-canvas); color: var(--text-dark); }
         .page-btn.active { background: var(--accent); color: #FFFFFF; border-color: var(--accent); }
     </style>
     <script src="assets/js/theme.js"></script>
@@ -114,7 +132,7 @@
                 </a>
             </nav>
 
-            <<div class="sidebar-footer" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="sidebar-footer" style="display: flex; justify-content: space-between; align-items: center;">
                 <div style="display: flex; align-items: center;">
                     <div class="user-avatar">AD</div>
                     <div class="fade-text" style="overflow:hidden;">
@@ -137,9 +155,6 @@
                         <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                         <input type="text" id="searchInput" class="search-input" placeholder="Search by name, ID, or phone number..." onkeyup="applyFilters()" />
                     </div>
-                    <button class="btn-secondary">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Filters
-                    </button>
                 </div>
                 <div class="header-actions">
                     <div style="font-size:0.875rem; font-weight:500; color:var(--text-mid); padding-right:1.5rem; border-right:1px solid var(--border-light);">
@@ -165,12 +180,19 @@
 
                 <div class="table-card">
                     <div class="card-toolbar">
+                        
                         <div class="toolbar-filters">
                             <div class="seg-control" id="statusFilterControl">
                                 <button class="seg-btn active" onclick="setTabFilter('all', this)">All</button>
                                 <button class="seg-btn" onclick="setTabFilter('recent', this)">Recently Viewed</button>
                                 <button class="seg-btn" onclick="setTabFilter('active', this)">Active Patients</button>
                             </div>
+                        </div>
+
+                        <div class="toolbar-filters">
+                            <button class="btn-outline">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg> Advanced Filters
+                            </button>
                             <select class="dropdown-filter" id="physicianFilter" onchange="applyFilters()">
                                 <option value="all">All Physicians</option>
                                 <option value="Dr. Fatima">Dr. Fatima</option>
@@ -183,37 +205,54 @@
                     <table class="data-table" id="patientTable">
                         <thead>
                             <tr>
-                                <th>MRN</th>
-                                <th>PATIENT NAME</th>
-                                <th>AGE / DOB</th>
-                                <th>CONTACT INFO</th>
-                                <th>LAST VISIT</th>
-                                <th>ASSIGNED DOCTOR</th>
-                                <th style="text-align: right;">ACTIONS</th>
+                                <th style="width: 14%;">MRN & ID STATUS</th>
+                                <th style="width: 20%;">PATIENT</th>
+                                <th style="width: 14%;">AGE / DOB</th>
+                                <th style="width: 15%;">CONTACT</th>
+                                <th style="width: 15%;">INSURANCE</th>
+                                <th style="width: 12%;">ASSIGNED DOCTOR</th>
+                                <th style="text-align: right; width: 10%;">ACTIONS</th>
                             </tr>
                         </thead>
                         <tbody>
+                            
                             <tr class="main-patient-row" data-physician="Dr. Fatima" data-active="true" data-recent="false">
-                                <td class="mrn-text">MRN-2026-0006</td>
+                                <td>
+                                    <span class="mrn-text">MRN-2026-0006</span>
+                                    <span class="eid-badge eid-verified">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        EID Verified
+                                    </span>
+                                </td>
                                 <td>
                                     <div class="pt-name-wrap">
                                         <div class="pt-avatar-sm avatar-blue">SK</div>
-                                        <span class="pt-name-text">Sara Khan</span>
-                                        <span class="clinical-tag tag-maternity">Maternity</span>
+                                        <div>
+                                            <span class="pt-name-text">Sara Khan</span>
+                                            <span class="clinical-tag tag-maternity">Maternity</span>
+                                            <div class="live-status-text">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                                Waiting Room • 12m
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td><span style="font-weight: 500;">31 yrs</span> <span style="color:var(--text-muted);">(1995-02-14)</span></td>
+                                <td><span style="font-weight: 500;">31 yrs</span> <br><span style="color:var(--text-muted); font-size: 0.75rem;">(1995-02-14)</span></td>
                                 <td>
-                                    <div style="font-weight: 500;">+92 333 7654321</div>
-                                    <div style="font-size: 0.6875rem; color: var(--text-muted);">ID: NID-663829</div>
+                                    <div style="font-weight: 500; font-size: 0.8125rem;">+92 333 7654321</div>
+                                    <div style="font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px;">ID: 784-1995-663829-2</div>
                                 </td>
-                                <td>2026-06-10</td>
+                                <td>
+                                    <span class="ins-badge">Daman (Thiqa)</span>
+                                    <div style="font-size: 0.6875rem; color: var(--success-text); font-weight: 600;">Active Policy</div>
+                                </td>
                                 <td><span class="doc-badge">Dr. Fatima</span></td>
                                 <td>
                                     <div class="actions-cell">
-                                        <button class="btn-outline">Book Visit</button>
-                                        <button class="btn-light-accent" onclick="toggleDetails('note-sara')">Note</button>
-                                        <button class="icon-btn">•••</button>
+                                        <button class="btn-outline">Visit</button>
+                                        <button class="btn-action-icon" onclick="toggleDetails('note-sara')" title="View Clinical Notes">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -221,13 +260,26 @@
                                 <td colspan="7">
                                     <div class="detail-wrapper">
                                         <div class="detail-container">
-                                            <span class="detail-label">STORED NOTES FOR SARA KHAN</span>
-                                            <div class="note-card">
-                                                <div class="note-header">
-                                                    <span class="note-tag">CLINICAL</span>
-                                                    <span class="note-meta">2026-06-19 • Entered by System Admin</span>
+                                            <div class="detail-section">
+                                                <span class="detail-label">STORED NOTES FOR SARA KHAN</span>
+                                                <div class="note-card">
+                                                    <div class="note-header">
+                                                        <span class="note-tag">CLINICAL</span>
+                                                        <span class="note-meta">2026-06-19 • Entered by System Admin</span>
+                                                    </div>
+                                                    <p class="note-body">Patient reported normal recovery during follow-up call. Advised to continue current medication protocol and schedule next routine scan in 4 weeks.</p>
                                                 </div>
-                                                <p class="note-body">Patient reported normal recovery during follow-up call. Advised to continue current medication protocol and schedule next routine scan in 4 weeks.</p>
+                                            </div>
+                                            <div class="detail-section" style="max-width: 250px;">
+                                                <span class="detail-label">QUICK ACTIONS</span>
+                                                <button class="quick-action-btn">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                                                    Send to Triage
+                                                </button>
+                                                <button class="quick-action-btn">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                                                    Process Billing
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -235,39 +287,68 @@
                             </tr>
 
                             <tr class="main-patient-row" data-physician="Dr. Roger" data-active="true" data-recent="true">
-                                <td class="mrn-text">MRN-2026-0007</td>
+                                <td>
+                                    <span class="mrn-text">MRN-2026-0007</span>
+                                    <span class="eid-badge eid-warning">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                        Expiring Soon
+                                    </span>
+                                </td>
                                 <td>
                                     <div class="pt-name-wrap">
                                         <div class="pt-avatar-sm avatar-orange">ZA</div>
-                                        <span class="pt-name-text">Zain Ahmed</span>
+                                        <div>
+                                            <span class="pt-name-text">Zain Ahmed</span>
+                                            <div class="live-status-text" style="color: var(--warning-text);">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                                Billing Pending
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td><span style="font-weight: 500;">42 yrs</span> <span style="color:var(--text-muted);">(1984-08-22)</span></td>
+                                <td><span style="font-weight: 500;">42 yrs</span> <br><span style="color:var(--text-muted); font-size: 0.75rem;">(1984-08-22)</span></td>
                                 <td>
-                                    <div style="font-weight: 500;">+92 332 3217479</div>
-                                    <div style="font-size: 0.6875rem; color: var(--text-muted);">ID: NID-110293</div>
+                                    <div style="font-weight: 500; font-size: 0.8125rem;">+92 332 3217479</div>
+                                    <div style="font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px;">ID: 784-1984-110293-1</div>
                                 </td>
-                                <td>2026-05-28</td>
+                                <td>
+                                    <span class="ins-badge">Sukoon Insurance</span>
+                                    <div style="font-size: 0.6875rem; color: var(--text-muted); font-weight: 500;">Silver Classic</div>
+                                </td>
                                 <td><span class="doc-badge doc-badge-roger">Dr. Roger</span></td>
                                 <td>
                                     <div class="actions-cell">
-                                        <button class="btn-outline">Book Visit</button>
-                                        <button class="btn-light-accent" onclick="toggleDetails('note-zain')">Note</button>
-                                        <button class="icon-btn">•••</button>
+                                        <button class="btn-outline">Visit</button>
+                                        <button class="btn-action-icon" onclick="toggleDetails('note-zain')" title="View Clinical Notes">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr id="note-zain" class="expanded-row">
                                 <td colspan="7">
                                     <div class="detail-wrapper">
-                                        <div class="detail-container">
-                                            <span class="detail-label">STORED NOTES FOR ZAIN AHMED</span>
-                                            <div class="note-card">
-                                                <div class="note-header">
-                                                    <span class="note-tag" style="background:#FEF2F2; color:#DC2626;">BILLING ALERT</span>
-                                                    <span class="note-meta">2026-06-18 • Entered by Accounts</span>
+                                        <div class="detail-container" style="border-left-color: var(--danger);">
+                                            <div class="detail-section">
+                                                <span class="detail-label">STORED NOTES FOR ZAIN AHMED</span>
+                                                <div class="note-card">
+                                                    <div class="note-header">
+                                                        <span class="note-tag" style="background:var(--danger-bg); color:var(--danger);">BILLING ALERT</span>
+                                                        <span class="note-meta">2026-06-18 • Entered by Accounts</span>
+                                                    </div>
+                                                    <p class="note-body">Pending insurance pre-auth approval. Please collect copay of Rs. 2,500 at the reception prior to next consultation.</p>
                                                 </div>
-                                                <p class="note-body">Pending insurance pre-auth approval. Please collect copay of Rs. 2,500 at the reception prior to next consultation.</p>
+                                            </div>
+                                            <div class="detail-section" style="max-width: 250px;">
+                                                <span class="detail-label">QUICK ACTIONS</span>
+                                                <button class="quick-action-btn">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                                    Collect Copay
+                                                </button>
+                                                <button class="quick-action-btn">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                                    Request Pre-Auth
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -275,39 +356,64 @@
                             </tr>
 
                             <tr class="main-patient-row" data-physician="Dr. Ali" data-active="false" data-recent="true">
-                                <td class="mrn-text">MRN-2026-0008</td>
+                                <td>
+                                    <span class="mrn-text">MRN-2026-0008</span>
+                                    <span class="eid-badge eid-verified">
+                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        EID Verified
+                                    </span>
+                                </td>
                                 <td>
                                     <div class="pt-name-wrap">
                                         <div class="pt-avatar-sm avatar-green">AS</div>
-                                        <span class="pt-name-text">Ameem Siddiqui</span>
+                                        <div>
+                                            <span class="pt-name-text">Ameem Siddiqui</span>
+                                            <div class="live-status-text" style="color: var(--text-muted);">
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                                Discharged
+                                            </div>
+                                        </div>
                                     </div>
                                 </td>
-                                <td><span style="font-weight: 500;">29 yrs</span> <span style="color:var(--text-muted);">(1997-11-05)</span></td>
+                                <td><span style="font-weight: 500;">29 yrs</span> <br><span style="color:var(--text-muted); font-size: 0.75rem;">(1997-11-05)</span></td>
                                 <td>
-                                    <div style="font-weight: 500;">+92 345 8899000</div>
-                                    <div style="font-size: 0.6875rem; color: var(--text-muted);">ID: NID-223344</div>
+                                    <div style="font-weight: 500; font-size: 0.8125rem;">+92 345 8899000</div>
+                                    <div style="font-size: 0.6875rem; color: var(--text-muted); margin-top: 2px;">ID: 784-1997-223344-9</div>
                                 </td>
-                                <td>2026-06-01</td>
+                                <td>
+                                    <span class="ins-badge">GIG Gulf</span>
+                                    <div style="font-size: 0.6875rem; color: var(--success-text); font-weight: 600;">Active Policy</div>
+                                </td>
                                 <td><span class="doc-badge doc-badge-ali">Dr. Ali</span></td>
                                 <td>
                                     <div class="actions-cell">
-                                        <button class="btn-outline">Book Visit</button>
-                                        <button class="btn-light-accent" onclick="toggleDetails('note-ameem')">Note</button>
-                                        <button class="icon-btn">•••</button>
+                                        <button class="btn-outline">Visit</button>
+                                        <button class="btn-action-icon" onclick="toggleDetails('note-ameem')" title="View Clinical Notes">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr id="note-ameem" class="expanded-row">
                                 <td colspan="7">
                                     <div class="detail-wrapper">
-                                        <div class="detail-container">
-                                            <span class="detail-label">STORED NOTES FOR AMEEM SIDDIQUI</span>
-                                            <div class="note-card">
-                                                <div class="note-header">
-                                                    <span class="note-tag">DISCHARGED</span>
-                                                    <span class="note-meta">2026-06-05 • Entered by Dr. Ali</span>
+                                        <div class="detail-container" style="border-left-color: var(--text-mid);">
+                                            <div class="detail-section">
+                                                <span class="detail-label">STORED NOTES FOR AMEEM SIDDIQUI</span>
+                                                <div class="note-card">
+                                                    <div class="note-header">
+                                                        <span class="note-tag" style="background: var(--bg-aesthetic); color: var(--text-mid);">DISCHARGED</span>
+                                                        <span class="note-meta">2026-06-05 • Entered by Dr. Ali</span>
+                                                    </div>
+                                                    <p class="note-body">Patient successfully treated for minor wrist fracture. Cast removed. Cleared for normal activity with no further follow-ups required.</p>
                                                 </div>
-                                                <p class="note-body">Patient successfully treated for minor wrist fracture. Cast removed. Cleared for normal activity with no further follow-ups required.</p>
+                                            </div>
+                                            <div class="detail-section" style="max-width: 250px;">
+                                                <span class="detail-label">QUICK ACTIONS</span>
+                                                <button class="quick-action-btn">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                                    Print Medical Report
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -319,9 +425,9 @@
                     <div class="table-footer">
                         <span id="visibleCountText">Showing 1-3 of 3 patients</span>
                         <div style="display: flex; gap: 8px;">
-                            <button class="page-btn"><</button>
+                            <button class="page-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
                             <button class="page-btn active">1</button>
-                            <button class="page-btn">></button>
+                            <button class="page-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
                         </div>
                     </div>
                 </div>
