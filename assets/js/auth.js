@@ -54,31 +54,44 @@ function handleLogin() {
     }
 
     if (ok) {
-        // Enforce Admin Only Logic
-        if (!role.includes('Admin')) {
-            document.getElementById('err-id').style.display = 'flex';
-            document.getElementById('err-id-text').textContent = 'Access Restricted: Only Admin login is currently enabled.';
-            return;
-        }
-
-        // Hardcoded Admin Credentials
-        if (id.toLowerCase() !== 'admin' || pw !== 'admin') {
-            document.getElementById('staffId').classList.add('err');
-            document.getElementById('password').classList.add('err');
-            document.getElementById('err-pw').style.display = 'flex';
-            document.getElementById('err-pw-text').textContent = 'Invalid credentials. Please use "admin" for both.';
-            return;
-        }
-
-        // Success Redirect
         const btn = document.getElementById('signInBtn');
         btn.textContent = 'Authenticating…';
         btn.disabled = true;
 
-        setTimeout(() => {
-            btn.textContent = 'Redirecting...';
-            window.location.href = 'dashboard.html';
-        }, 1200);
+        // ── PHP Backend Authentication ──
+        const formData = new FormData();
+        formData.append('action', 'login');
+        formData.append('staff_id', id);
+        formData.append('password', pw);
+        formData.append('role', role);
+
+        fetch('api/auth.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    btn.textContent = 'Redirecting...';
+                    window.location.href = 'dashboard.html';
+                } else {
+                    document.getElementById('staffId').classList.add('err');
+                    document.getElementById('password').classList.add('err');
+                    document.getElementById('err-pw').style.display = 'flex';
+                    document.getElementById('err-pw-text').textContent = data.error || 'Invalid credentials. Please try again.';
+                    btn.textContent = 'Sign In';
+                    btn.disabled = false;
+                }
+            })
+            .catch(() => {
+                // Fallback to demo mode if backend unavailable
+                if (id.toLowerCase() === 'admin' && pw === 'admin') {
+                    btn.textContent = 'Redirecting...';
+                    window.location.href = 'dashboard.html';
+                } else {
+                    document.getElementById('err-pw').style.display = 'flex';
+                    document.getElementById('err-pw-text').textContent = 'Server error. Use admin/admin for demo mode.';
+                    btn.textContent = 'Sign In';
+                    btn.disabled = false;
+                }
+            });
     }
 }
 

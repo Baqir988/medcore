@@ -8,141 +8,67 @@
 /* ─── 0. CONSTANTS ─────────────────────────────────────────────── */
 const MONTHS  = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DAYS    = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-
-const PATIENTS = [
-  { mrn:'MRN-2026-0006', name:'Sara Khan',          payer:'insurance', insurer:'Daman — Thiqa Plan' },
-  { mrn:'MRN-2026-0007', name:'Zain Ahmed',         payer:'insurance', insurer:'Sukoon — Silver Classic' },
-  { mrn:'MRN-2026-0008', name:'Ameem Siddiqui',     payer:'insurance', insurer:'GIG Gulf Comprehensive' },
-  { mrn:'MRN-2026-0009', name:'Noura Al-Mansoori',  payer:'cash',      insurer: null },
-  { mrn:'MRN-2026-0010', name:'Kavya Shanil',       payer:'insurance', insurer:'Oman Insurance — Gold' },
-  { mrn:'MRN-2026-0011', name:'Omar Farooq',        payer:'cash',      insurer: null },
-  { mrn:'MRN-2026-0012', name:'Hamdan Khalifa',     payer:'insurance', insurer:'Daman — Enhanced Network' },
-  { mrn:'MRN-2026-0013', name:'Fatima Al-Rashid',   payer:'insurance', insurer:'AXA Gulf — Corporate' },
-  { mrn:'MRN-2026-0014', name:'Layla Hussain',      payer:'cash',      insurer: null },
-  { mrn:'MRN-2026-0015', name:'Khaled Mansoor',     payer:'insurance', insurer:'ADNIC — Standard' },
-];
-
-const BILLING_MODES_CASH = ['Cash — AED'];
-const BILLING_MODES_CARD = [
-  'Card — Visa ****4821','Card — Visa ****3392','Card — MC ****7712',
-  'Card — MC ****5501','Card — Amex ****8820',
-];
-const REJECTION_REASONS = [
-  { label:'Pre-Authorization Missing',      detail:'Requires DHA pre-auth code for elective procedures' },
-  { label:'Duplicate Claim Filed',          detail:'Claim was already settled for this encounter' },
-  { label:'Policy Expired at Time of Service', detail:'Coverage lapsed before the service date' },
-  { label:'Incorrect CPT Code',             detail:'Payer requires a different procedure code for this visit type' },
-  { label:'Patient Not Covered',            detail:'Patient name does not match policy holder on file' },
-  { label:'Missing Supporting Documents',   detail:'Clinical notes and lab reports were not attached' },
-];
-const CLAIM_STATUSES = ['Approved','Approved','Pending','Pending','Denied'];
+// Note: PATIENTS, BILLING_MODES, REJECTION_REASONS, CLAIM_STATUSES removed —
+// all financial data is now served from the PHP API (api/financial.php).
 
 /* ─── 1. STATE ─────────────────────────────────────────────────── */
-let activePeriod  = 'daily';
+let activePeriod      = 'daily';
 let activePayerFilter = 'all';
-let revenueChart  = null;
-let cashflowChart = null;
+let revenueChart      = null;
+let cashflowChart     = null;
 
-/* ─── 2. MOCK DATA GENERATION ──────────────────────────────────── */
+// ── API cache (populated by fetchAll) ──
+let _apiKPIs     = null;
+let _apiLedger   = [];
+let _apiClaims   = [];
+let _apiDenials  = [];
+let _apiRevChart = null;
+let _apiCashflow = null;
+let _apiFetching = false;
 
-/** Returns a Date that is `daysAgo` days before today, at hour/minute. */
-function daysBack(daysAgo, h = 10, m = 0) {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  d.setHours(h, m, 0, 0);
-  return d;
-}
+/* ─── 2. API DATA FETCH ─────────────────────────────────────────── */
 
-function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-function pick(arr) { return arr[rand(0, arr.length - 1)]; }
+/** Fetch all financial data from PHP API for the current period/payer, then refresh UI. */
+async function fetchAll() {
+  if (_apiFetching) return;
+  _apiFetching = true;
 
-/** Build a seeded-deterministic transaction list spanning last 365 days. */
-function buildTransactionDB() {
-  const transactions = [];
-  let rctSeq  = 4200;
-  let clmSeq  = 300;
-  let invSeq  = 4420;
+  const base = `api/financial.php?period=${activePeriod}&payer=${activePayerFilter}`;
 
-  for (let i = 0; i < 365; i++) {
-    // 0–2 transactions per day
-    const count = rand(0, 2);
-    for (let j = 0; j < count; j++) {
-      const pt     = pick(PATIENTS);
-      const hour   = rand(8, 17);
-      const minute = pick([0, 15, 30, 45]);
-      const ts     = daysBack(364 - i, hour, minute);  // oldest first
-      const isCard = Math.random() > 0.45;
-      const amount = rand(300, 12000);
-      const status = Math.random() > 0.1 ? 'Cleared' : 'Void';
-      rctSeq++;
+  try {
+    const [kpisRes, ledgerRes, claimsRes, denialsRes, revRes, cashRes] = await Promise.all([
+      fetch(base + '&action=kpis'),
+      fetch(base + '&action=ledger'),
+      fetch(base + '&action=claims'),
+      fetch(`api/financial.php?action=denials&payer=${activePayerFilter}`),
+      fetch(base + '&action=revenue_chart'),
+      fetch(`api/financial.php?action=cashflow_chart&period=${activePeriod}`),
+    ]);
 
-      transactions.push({
-        type:       'ledger',
-        id:         `RCT-${ts.getFullYear()}-${String(rctSeq).padStart(5,'0')}`,
-        date:       ts,
-        mrn:        pt.mrn,
-        patientName:pt.name,
-        mode:       pt.payer === 'cash' ? BILLING_MODES_CASH[0] : (isCard ? pick(BILLING_MODES_CARD) : BILLING_MODES_CASH[0]),
-        amount,
-        status,
-        payer:      pt.payer,
-        department: pick(['General Practice','Dental Surgery','Dermatology','Pediatrics','Orthopedics']),
-      });
-    }
+    _apiKPIs     = await kpisRes.json();
+    const ledgerData   = await ledgerRes.json();
+    const claimsData   = await claimsRes.json();
+    const denialsData  = await denialsRes.json();
+    _apiRevChart       = await revRes.json();
+    _apiCashflow       = await cashRes.json();
 
-    // 0–1 insurance claims every ~5 days
-    if (i % 5 === 0) {
-      const pt       = PATIENTS.filter(p => p.payer === 'insurance')[rand(0, 6)];
-      const ts       = daysBack(364 - i, rand(8, 16), 0);
-      const claimed  = rand(4000, 35000);
-      const clStatus = pick(CLAIM_STATUSES);
-      const settled  = clStatus === 'Approved' ? rand(Math.floor(claimed * 0.8), claimed)
-                     : clStatus === 'Denied'   ? 0 : null;
-      clmSeq++;
+    _apiLedger  = ledgerData.rows  || [];
+    _apiClaims  = claimsData.rows  || [];
+    _apiDenials = denialsData.rows || [];
 
-      transactions.push({
-        type:       'claim',
-        id:         `CLM-${String(ts.getMonth()+1).padStart(2,'0')}-${String(clmSeq).padStart(4,'0')}`,
-        date:       ts,
-        patientName:pt.name,
-        insurer:    pt.insurer,
-        claimed,
-        status:     clStatus,
-        settlement: settled,
-        payer:      'insurance',
-        mrn:        pt.mrn,
-        department: pick(['General Practice','Dental Surgery','Dermatology','Pediatrics','Orthopedics']),
-      });
-    }
+    // Normalize ledger date strings to Date objects for fmtDate
+    _apiLedger.forEach(r => { r.date = new Date(r.date); });
+    _apiClaims.forEach(r => { r.date = new Date(r.date); });
+    _apiDenials.forEach(r => { r.date = new Date(r.date); });
 
-    // Denials — subset of claims
-    if (i % 13 === 0) {
-      const pt    = PATIENTS.filter(p => p.payer === 'insurance')[rand(0, 6)];
-      const ts    = daysBack(364 - i, rand(8, 16), 30);
-      const amt   = rand(3500, 20000);
-      const reason= pick(REJECTION_REASONS);
-      invSeq++;
-
-      transactions.push({
-        type:       'denial',
-        id:         `INV-${ts.getFullYear()}-${String(invSeq).padStart(5,'0')}`,
-        date:       ts,
-        patientName:pt.name,
-        insurer:    pt.insurer,
-        amount:     amt,
-        reason:     reason.label,
-        detail:     reason.detail,
-        payer:      'insurance',
-        department: pick(['General Practice','Dental Surgery','Dermatology','Pediatrics','Orthopedics']),
-      });
-    }
+  } catch(e) {
+    // API unavailable — keep existing cache (or zeroes)
+    console.warn('Financial API unavailable:', e);
   }
 
-  // Sort newest first
-  return transactions.sort((a, b) => b.date - a.date);
+  _apiFetching = false;
 }
 
-const ALL_TRANSACTIONS = buildTransactionDB();
 
 /* ─── 3. DATE HELPERS ──────────────────────────────────────────── */
 function startOfDay(d)   { const c = new Date(d); c.setHours(0,0,0,0); return c; }
@@ -178,46 +104,26 @@ function cssVar(name) {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-/* ─── 5. FILTER ENGINE ─────────────────────────────────────────── */
+/* ─── 5. FILTER ENGINE (now reads from API cache) ──────────────── */
 function filterTxns(type) {
-  const start  = getPeriodStart(activePeriod);
-  const now    = new Date();
-  return ALL_TRANSACTIONS.filter(t => {
-    if (t.type !== type) return false;
-    if (t.date < start || t.date > now) return false;
-    if (activePayerFilter !== 'all' && t.payer !== activePayerFilter) return false;
-    return true;
-  });
+  if (type === 'ledger') return _apiLedger;
+  if (type === 'claim')  return _apiClaims;
+  if (type === 'denial') return _apiDenials;
+  return [];
 }
 
-/* ─── 6. KPI UPDATER ───────────────────────────────────────────── */
+/* ─── 6. KPI UPDATER (reads from API cache) ────────────────────── */
 function updateKPIs() {
-  const ledger  = filterTxns('ledger');
-  const claims  = filterTxns('claim');
-
-  const cleared = ledger.filter(t => t.status === 'Cleared');
-  const gross   = cleared.reduce((s, t) => s + t.amount, 0);
-  // Net = cleared cash + approved settlement amounts
-  const cashNet = cleared.filter(t => t.payer === 'cash').reduce((s, t) => s + t.amount, 0);
-  const insNet  = claims.filter(c => c.status === 'Approved' && c.settlement).reduce((s, c) => s + c.settlement, 0);
-  const net     = cashNet + insNet;
-  const pending = claims.filter(c => c.status === 'Pending').reduce((s, c) => s + c.claimed, 0);
-  const denied  = claims.filter(c => c.status === 'Denied').reduce((s, c) => s + c.claimed, 0);
-
-  const periodLabel = activePeriod.charAt(0).toUpperCase() + activePeriod.slice(1);
-  const invoiceCount = cleared.length;
-
-  setText('kpi-gross',         fmtAED(gross));
-  setText('kpi-gross-sub',     `AED · ${invoiceCount} ${periodLabel.toLowerCase()} invoice${invoiceCount !== 1 ? 's' : ''} cleared`);
-  setText('kpi-net',           fmtAED(net));
-  const pct = gross > 0 ? Math.round((net / gross) * 100) : 0;
-  setText('kpi-net-sub',       `AED · ${pct}% of gross billed`);
-  setText('kpi-ar',            fmtAED(pending));
-  const pendingCount = claims.filter(c => c.status === 'Pending').length;
-  setText('kpi-ar-sub',        `AED · ${pendingCount} claim${pendingCount !== 1 ? 's' : ''} in pipeline`);
-  setText('kpi-outstanding',   fmtAED(denied));
-  const deniedCount = claims.filter(c => c.status === 'Denied').length;
-  setText('kpi-outstanding-sub', `AED · ${deniedCount} denied account${deniedCount !== 1 ? 's' : ''}`);
+  if (!_apiKPIs || !_apiKPIs.success) return;
+  const k = _apiKPIs;
+  setText('kpi-gross',           fmtAED(k.grossBilled));
+  setText('kpi-gross-sub',       k.grossSub);
+  setText('kpi-net',             fmtAED(k.netCollected));
+  setText('kpi-net-sub',         k.netSub);
+  setText('kpi-ar',              fmtAED(k.pendingAR));
+  setText('kpi-ar-sub',          k.pendingSub);
+  setText('kpi-outstanding',     fmtAED(k.outstanding));
+  setText('kpi-outstanding-sub', k.outstandingSub);
 }
 
 function setText(id, val) {
@@ -228,33 +134,14 @@ function setText(id, val) {
 /* ─── 7. CHART BUILDERS ────────────────────────────────────────── */
 
 function getRevenueByDepartment() {
-  const ledger = filterTxns('ledger');
-  const cleared = ledger.filter(t => t.status === 'Cleared');
-
-  const depts = {
-    'General Practice': 0,
-    'Dental Surgery': 0,
-    'Dermatology': 0,
-    'Pediatrics': 0,
-    'Orthopedics': 0
-  };
-
-  cleared.forEach(t => {
-    const dept = t.department || 'General Practice';
-    depts[dept] += t.amount;
-  });
-
-  const total = Object.values(depts).reduce((a, b) => a + b, 0);
-  const labels = Object.keys(depts);
-  let data = labels.map(l => depts[l]);
-
-  if (total === 0) {
-    data = [35, 25, 20, 12, 8];
-  } else {
-    data = data.map(v => Math.round((v / total) * 100));
+  // Use API cache if available, otherwise fallback to proportional defaults
+  if (_apiRevChart && _apiRevChart.success) {
+    return { labels: _apiRevChart.labels, data: _apiRevChart.data };
   }
-
-  return { labels, data };
+  return {
+    labels: ['General Practice','Dental Surgery','Dermatology','Pediatrics','Orthopedics'],
+    data:   [35, 25, 20, 12, 8],
+  };
 }
 
 /* ── 7a. Revenue Donut (dynamic dept split) ── */
@@ -426,75 +313,17 @@ function buildCashflowChart() {
 
 /** Build the time-series labels and aggregated AED values for the cash flow chart. */
 function buildCashflowSeries() {
-  const now    = new Date();
-  let labels   = [];
-  let values   = [];
-  let rangeLabel = '';
-
-  const cleared = ALL_TRANSACTIONS.filter(t => t.type === 'ledger' && t.status === 'Cleared');
-
-  if (activePeriod === 'daily') {
-    // Last 24 hours → hourly buckets
-    const buckets = Array(24).fill(0);
-    const dayStart = startOfDay(now);
-    cleared.forEach(t => {
-      if (t.date >= dayStart) buckets[t.date.getHours()] += t.amount;
-    });
-    labels = Array.from({ length: 24 }, (_, h) => {
-      const ap = h >= 12 ? 'PM' : 'AM';
-      const h12 = h % 12 || 12;
-      return `${h12}${ap}`;
-    });
-    values = buckets;
-    rangeLabel = `Today, ${MONTHS[now.getMonth()]} ${now.getDate()}`;
-
-  } else if (activePeriod === 'weekly') {
-    // Last 7 days → daily buckets
-    const buckets = Array(7).fill(0);
-    const weekStart = startOfWeek(now);
-    cleared.forEach(t => {
-      const diff = Math.floor((t.date - weekStart) / 86400000);
-      if (diff >= 0 && diff < 7) buckets[diff] += t.amount;
-    });
-    labels = Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(weekStart);
-      d.setDate(d.getDate() + i);
-      return `${DAYS[d.getDay()]} ${d.getDate()}`;
-    });
-    values = buckets;
-    const ws = new Date(weekStart);
-    const we = new Date(weekStart); we.setDate(we.getDate() + 6);
-    rangeLabel = `${ws.getDate()} ${MONTHS[ws.getMonth()]} — ${we.getDate()} ${MONTHS[we.getMonth()]}`;
-
-  } else if (activePeriod === 'monthly') {
-    // Last 30 days → daily buckets
-    const buckets = Array(30).fill(0);
-    const monthStart = new Date(now); monthStart.setDate(monthStart.getDate() - 29); startOfDay(monthStart);
-    cleared.forEach(t => {
-      const diff = Math.floor((t.date - monthStart) / 86400000);
-      if (diff >= 0 && diff < 30) buckets[diff] += t.amount;
-    });
-    labels = Array.from({ length: 30 }, (_, i) => {
-      const d = new Date(monthStart); d.setDate(d.getDate() + i);
-      return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
-    });
-    values = buckets;
-    rangeLabel = `Last 30 Days`;
-
-  } else {
-    // yearly → monthly buckets for current year
-    const buckets = Array(12).fill(0);
-    cleared.forEach(t => {
-      if (t.date.getFullYear() === now.getFullYear()) {
-        buckets[t.date.getMonth()] += t.amount;
-      }
-    });
-    labels = MONTHS;
-    values = buckets;
-    rangeLabel = `FY ${now.getFullYear()}`;
+  // Use API cache if available
+  if (_apiCashflow && _apiCashflow.success) {
+    return {
+      labels:     _apiCashflow.labels,
+      values:     _apiCashflow.values,
+      rangeLabel: _apiCashflow.rangeLabel,
+    };
   }
-
-  return { labels, values, rangeLabel };
+  // Fallback: empty series
+  const now = new Date();
+  return { labels: MONTHS, values: Array(12).fill(0), rangeLabel: `FY ${now.getFullYear()}` };
 }
 
 /** Update chart data in-place without destroying. */
@@ -509,18 +338,19 @@ const CARD_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" st
 function renderLedger() {
   const tbody = document.getElementById('tbody-ledger');
   if (!tbody) return;
-  const rows = filterTxns('ledger');
+  const rows = _apiLedger;
   if (!rows.length) { tbody.innerHTML = emptyRow(6); return; }
 
   tbody.innerHTML = rows.map(t => {
     const badgeCls = t.status === 'Cleared' ? 'badge-cleared' : 'badge-void';
-    const modeHtml = t.mode.startsWith('Card')
-      ? `<span style="display:inline-flex;align-items:center;gap:5px;">${CARD_SVG}${t.mode}</span>`
-      : t.mode;
+    const mode     = t.mode || 'Cash — AED';
+    const modeHtml = mode.startsWith('Card')
+      ? `<span style="display:inline-flex;align-items:center;gap:5px;">${CARD_SVG}${mode}</span>`
+      : mode;
     return `<tr>
       <td style="font-weight:600;">${t.id}</td>
-      <td>${fmtDate(t.date, true)}</td>
-      <td style="color:var(--accent);font-weight:600;">${t.mrn}</td>
+      <td>${fmtDate(t.date instanceof Date ? t.date : new Date(t.date), true)}</td>
+      <td style="color:var(--accent);font-weight:600;">${t.mrn || '—'}</td>
       <td>${modeHtml}</td>
       <td class="td-right td-mono" style="font-weight:600;">${fmtAED(t.amount)}</td>
       <td style="text-align:center;"><span class="badge-sm ${badgeCls}">${t.status}</span></td>
@@ -531,7 +361,7 @@ function renderLedger() {
 function renderClaims() {
   const tbody = document.getElementById('tbody-claims');
   if (!tbody) return;
-  const rows = filterTxns('claim');
+  const rows = _apiClaims;
   if (!rows.length) { tbody.innerHTML = emptyRow(7); return; }
 
   tbody.innerHTML = rows.map(c => {
@@ -544,9 +374,9 @@ function renderClaims() {
       : `<td class="td-right td-mono" style="color:var(--text-muted);">—</td>`;
     return `<tr>
       <td style="font-weight:600;">${c.id}</td>
-      <td>${fmtDate(c.date)}</td>
-      <td>${c.patientName}</td>
-      <td>${c.insurer}</td>
+      <td>${fmtDate(c.date instanceof Date ? c.date : new Date(c.date))}</td>
+      <td>${c.name || '—'}</td>
+      <td>${c.insurer || '—'}</td>
       <td class="td-right td-mono" style="font-weight:600;">${fmtAED(c.claimed)}</td>
       <td style="text-align:center;"><span class="badge-sm ${badgeCls}">${c.status}</span></td>
       ${settlCell}
@@ -557,22 +387,17 @@ function renderClaims() {
 function renderDenials() {
   const tbody = document.getElementById('tbody-denials');
   if (!tbody) return;
-  // Denials are not period-filtered — always show the full backlog
-  const rows = ALL_TRANSACTIONS.filter(t => {
-    if (t.type !== 'denial') return false;
-    if (activePayerFilter !== 'all' && t.payer !== activePayerFilter) return false;
-    return true;
-  });
+  const rows = _apiDenials;
   if (!rows.length) { tbody.innerHTML = emptyRow(6); return; }
 
   tbody.innerHTML = rows.map(d => `<tr>
     <td style="font-weight:600;">${d.id}</td>
-    <td>${d.patientName}</td>
-    <td>${d.insurer}</td>
+    <td>${d.name || '—'}</td>
+    <td>${d.insurer || '—'}</td>
     <td class="td-right td-mono" style="font-weight:600;">${fmtAED(d.amount)}</td>
     <td>
       <span style="color:var(--danger);font-weight:600;">${d.reason}</span>
-      <div style="font-size:0.6875rem;color:var(--text-muted);margin-top:3px;">${d.detail}</div>
+      <div style="font-size:0.6875rem;color:var(--text-muted);margin-top:3px;">${d.detail || ''}</div>
     </td>
     <td style="text-align:center;">
       <button class="btn-resubmit" onclick="resubmitClaim('${d.id}')">Re-submit</button>
@@ -584,14 +409,16 @@ function emptyRow(colspan) {
   return `<tr class="fin-empty-row"><td colspan="${colspan}">No records found for the selected period.</td></tr>`;
 }
 
-/* ─── 9. MASTER REFRESH ─────────────────────────────────────────── */
+/* ─── 9. MASTER REFRESH (async — fetches from API first) ────────── */
 function refreshAll() {
-  updateKPIs();
-  buildRevenueChart();
-  refreshCashflowChart();
-  renderLedger();
-  renderClaims();
-  renderDenials();
+  fetchAll().then(() => {
+    updateKPIs();
+    buildRevenueChart();
+    refreshCashflowChart();
+    renderLedger();
+    renderClaims();
+    renderDenials();
+  });
 }
 
 /* ─── 10. PUBLIC API (called by HTML onclick) ───────────────────── */
@@ -624,7 +451,13 @@ function downloadPDF() {
 }
 
 function resubmitClaim(invoiceNo) {
-  alert(`Re-submission request queued for Invoice ${invoiceNo}.\nThe claims team will be notified.`);
+  const fd = new FormData();
+  fd.append('action', 'resubmit');
+  fd.append('invoice_no', invoiceNo);
+  fetch('api/financial.php', { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(d => alert(d.message || `Re-submission queued for Invoice ${invoiceNo}.`))
+    .catch(() => alert(`Re-submission request queued for Invoice ${invoiceNo}.\nThe claims team will be notified.`));
 }
 
 /* ─── 11. LIVE HEADER CLOCK ─────────────────────────────────────── */

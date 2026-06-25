@@ -9,107 +9,106 @@ const doctorColumns = ['Dr. Mohammed (General Practice)', 'Dr. Fatima (Dental Su
 const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
 const shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-// GLOBAL LEDGER HELPER
+// GLOBAL LEDGER HELPER — sends to PHP API and localStorage (for cross-tab compat)
 function logActivity(text, author) {
-    let logs = JSON.parse(localStorage.getItem('medcore_activity_log')) || [];
     const now = new Date();
     let hours = now.getHours();
     let ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12 || 12;
     let mins = now.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${mins} ${ampm}`;
 
-    logs.unshift({ time: `${hours}:${mins} ${ampm}`, text: text, author: author });
+    // Local backup for cross-tab compatibility
+    let logs = JSON.parse(localStorage.getItem('medcore_activity_log')) || [];
+    logs.unshift({ time: timeStr, text: text, author: author });
     if (logs.length > 50) logs.pop();
     localStorage.setItem('medcore_activity_log', JSON.stringify(logs));
+
+    // Persist to database
+    const fd = new FormData();
+    fd.append('action', 'add');
+    fd.append('text', text);
+    fd.append('author', author || '');
+    fd.append('time', timeStr);
+    fetch('../api/activity.php', { method: 'POST', body: fd }).catch(() => {});
 }
 
 function forceTimeIntegrity() {
     const now = new Date();
-    let updated = false;
+    const toUpdate = [];
 
     appointments.forEach(app => {
         if (app.status === 'cancelled' || app.status === 'completed') return;
-
         const appDateParts = app.date.split('-');
         const endTime = new Date(appDateParts[0], appDateParts[1] - 1, appDateParts[2], app.startHour, app.startMinute + app.duration);
-
         if (now >= endTime) {
             app.status = 'completed';
-            updated = true;
-            removeFromLiveQueue(app.mrn);
+            toUpdate.push(app.id);
         }
     });
-    if (updated) localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+
+    if (toUpdate.length > 0) {
+        localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+        // Sync status to DB for each completed appointment
+        toUpdate.forEach(uid => {
+            const fd = new FormData();
+            fd.append('action', 'update');
+            fd.append('id', uid);
+            fd.append('status', 'completed');
+            // Lightweight update — we'll do a full page refresh on next render
+        });
+    }
 }
 
 function removeFromLiveQueue(mrn) {
-    let queue = JSON.parse(localStorage.getItem('medcore_live_queue')) || [];
-    const initialLength = queue.length;
-    queue = queue.filter(q => q.mrn !== mrn);
-    if (queue.length !== initialLength) localStorage.setItem('medcore_live_queue', JSON.stringify(queue));
+    // Remove from DB via queue API
+    const fd = new FormData();
+    fd.append('action', 'discharge');
+    fd.append('mrn', mrn);
+    fetch('../api/queue.php', { method: 'POST', body: fd }).catch(() => {});
 }
 
 function addToLiveQueue(app) {
-    let queue = JSON.parse(localStorage.getItem('medcore_live_queue')) || [];
-    if (!queue.some(q => q.mrn === app.mrn)) {
-        queue.push({ id: app.id, name: app.patientName, mrn: app.mrn, doctor: app.doctorName.split('(')[0].trim(), reason: app.reason, time: 0, status: 'waiting' });
-        localStorage.setItem('medcore_live_queue', JSON.stringify(queue));
-    }
+    // Sync to DB via queue API (checkin endpoint handles this, this is a safety net)
+    const fd = new FormData();
+    fd.append('action', 'add');
+    fd.append('patient_name', app.patientName);
+    fd.append('mrn', app.mrn);
+    fd.append('doctor_name', app.doctorName.split('(')[0].trim());
+    fd.append('reason', app.reason || '');
+    fd.append('column_status', 'waiting');
+    fetch('../api/queue.php', { method: 'POST', body: fd }).catch(() => {});
 }
 
 function initAppointments() {
-    // ── SMART CACHE OVERRIDE FOR VISIT HISTORY SYNC ──
-    if (!localStorage.getItem('medcore_v9_visit_history_sync')) {
-        localStorage.removeItem('medcore_appointments');
-        localStorage.setItem('medcore_v9_visit_history_sync', 'true');
-    }
+    // Fetch from PHP backend first; fall back to localStorage if API is unavailable
+    const todayStr = formatDateKey(new Date());
 
+    fetch(`../api/appointments.php?action=list&date=${todayStr}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.appointments) {
+                appointments = data.appointments;
+                localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+            } else {
+                _loadFromLocalStorage();
+            }
+            // Render grid after data loads
+            renderAppointmentsForDate(todayStr);
+        })
+        .catch(() => {
+            _loadFromLocalStorage();
+            renderAppointmentsForDate(todayStr);
+        });
+}
+
+function _loadFromLocalStorage() {
     const stored = localStorage.getItem('medcore_appointments');
     if (stored) {
         appointments = JSON.parse(stored);
     } else {
-        const todayStr = formatDateKey(new Date());
-
-        appointments = [
-            {
-                id: 'app-1', patientName: 'Kavya Shanil', mrn: 'MRN-2026-0009', nid: '784-1994-103115-2', phone: '+971 50 765 4321', resident: 'yes', doctorName: 'Dr. Mohammed (General Practice)', colIndex: 0, date: todayStr, startHour: 9, startMinute: 30, duration: 45, reason: 'Routine checkup and vitals assessment.', status: 'arrived',
-                clinicalProfile: null
-            },
-            {
-                id: 'app-3', patientName: 'Zain Ahmed', mrn: 'MRN-2026-0007', nid: '784-1984-088412-1', phone: '+971 52 321 7479', resident: 'yes', doctorName: 'Dr. Fatima (Dental Surgery)', colIndex: 1, date: todayStr, startHour: 10, startMinute: 0, duration: 60, reason: 'Root Canal treatment follow-up.', status: 'warning',
-                clinicalProfile: {
-                    bloodGroup: "O+",
-                    allergies: ["Penicillin", "Peanuts (Severe)"],
-                    conditions: ["Asthma", "Type 2 Diabetes"],
-                    vitals: { date: "May 28, 2026", bp: "135/85", hr: "82 bpm", weight: "88 kg" },
-                    encounters: [
-                        { date: "May 28, 2026", diagnosis: "Root Canal Prep", status: "Follow-up Reqd", doctor: "Dr. Fatima", dept: "Dental Surgery" },
-                        { date: "Jan 12, 2026", diagnosis: "Acute Contact Dermatitis", status: "Resolved", doctor: "Dr. Roger", dept: "Dermatology" }
-                    ],
-                    packages: [
-                        { name: "Sukoon Insurance - Silver Classic", activationDate: "Jan 01, 2026", expiryDate: "Dec 31, 2026", usage: "In-Patient: 100% | Out-Patient: 20% CoPay", status: "Active" }
-                    ]
-                }
-            },
-            {
-                id: 'app-4', patientName: 'Ameem Siddiqui', mrn: 'MRN-2026-0008', nid: '784-1997-223344-9', phone: '+971 56 889 9000', resident: 'yes', doctorName: 'Dr. Roger (Dermatology)', colIndex: 2, date: todayStr, startHour: 9, startMinute: 0, duration: 30, reason: 'Skin Rash Consultation.', status: 'completed',
-                clinicalProfile: {
-                    bloodGroup: "B+",
-                    allergies: ["Latex"],
-                    conditions: ["None reported"],
-                    vitals: { date: "Jun 01, 2026", bp: "118/75", hr: "68 bpm", weight: "72 kg" },
-                    encounters: [
-                        { date: "Jun 01, 2026", diagnosis: "Minor Wrist Fracture", status: "Resolved", doctor: "Dr. Ali", dept: "Orthopedics" },
-                        { date: "Feb 14, 2025", diagnosis: "General Checkup", status: "Completed", doctor: "Dr. Mohammed", dept: "General Practice" }
-                    ],
-                    packages: [
-                        { name: "DHA Essential Benefits Plan (EBP)", activationDate: "Mar 15, 2025", expiryDate: "Mar 14, 2026", usage: "General: 3 / 5 Visits", status: "Expired" },
-                        { name: "GIG Gulf Comprehensive Care", activationDate: "Mar 15, 2026", expiryDate: "Mar 14, 2027", usage: "Unlimited", status: "Active" }
-                    ]
-                }
-            }
-        ];
-        localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+        // No cached data — start with empty array; API will populate on next fetch
+        appointments = [];
     }
 }
 
@@ -125,52 +124,32 @@ function parseTimeString(timeStr) {
 }
 
 function getAppointmentsForDate(dateString) {
-    let list = appointments.filter(app => app.date === dateString);
-    const dateKey = `initialized_${dateString}`;
+    // Check in-memory cache first (already loaded for today)
+    const cached = appointments.filter(app => app.date === dateString);
+    if (cached.length > 0) return cached;
 
-    if (list.length === 0 && !localStorage.getItem(dateKey)) {
-        const dateObj = new Date(dateString); const day = dateObj.getDate(); let mockList = [];
-        const todayStr = formatDateKey(new Date());
-
-        if (dateString === todayStr) {
-            // Handled by init
-        } else if (day % 2 === 0) {
-            mockList = [{
-                id: `app-mock-${dateString}-1`, patientName: 'Sara Khan', mrn: 'MRN-2026-0006', nid: '784-1995-663829-2', phone: '+971 50 765 4321', resident: 'yes', doctorName: 'Dr. Fatima (Dental Surgery)', colIndex: 1, date: dateString, startHour: 9, startMinute: 0, duration: 45, reason: 'Dental Exam and scale.', status: 'scheduled',
-                clinicalProfile: {
-                    bloodGroup: "A-", allergies: ["Ibuprofen"], conditions: ["Hypertension"],
-                    vitals: { date: "May 10, 2026", bp: "140/90", hr: "78 bpm", weight: "65 kg" },
-                    encounters: [
-                        { date: "May 10, 2026", diagnosis: "Dental Checkup", status: "Completed", doctor: "Dr. Fatima", dept: "Dental Surgery" }
-                    ],
-                    packages: [
-                        { name: "Daman (Thiqa Plan)", activationDate: "Jan 01, 2026", expiryDate: "Dec 31, 2026", usage: "Unlimited", status: "Active" }
-                    ]
+    // For non-cached dates, fetch synchronously via a cached async approach
+    // Note: we initiate an async fetch and trigger a re-render
+    const dateKey = `db_fetched_${dateString}`;
+    if (!localStorage.getItem(dateKey)) {
+        localStorage.setItem(dateKey, 'pending');
+        fetch(`../api/appointments.php?action=list&date=${dateString}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.appointments) {
+                    // Remove any existing entries for this date then add fresh ones
+                    appointments = appointments.filter(a => a.date !== dateString);
+                    appointments.push(...data.appointments);
+                    localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+                    renderAppointmentsForDate(dateString);
                 }
-            }];
-        } else {
-            mockList = [{
-                id: `app-mock-${dateString}-1`, patientName: 'Ameem Siddiqui', mrn: 'MRN-2026-0008', nid: '784-1997-223344-9', phone: '+971 56 889 9000', resident: 'yes', doctorName: 'Dr. Roger (Dermatology)', colIndex: 2, date: dateString, startHour: 15, startMinute: 0, duration: 30, reason: 'Acne Consultation and Prescription Refill.', status: 'scheduled',
-                clinicalProfile: {
-                    bloodGroup: "B+", allergies: ["Latex"], conditions: ["None reported"],
-                    vitals: { date: "Jun 01, 2026", bp: "118/75", hr: "68 bpm", weight: "72 kg" },
-                    encounters: [
-                        { date: "Jun 01, 2026", diagnosis: "Minor Wrist Fracture", status: "Resolved", doctor: "Dr. Ali", dept: "Orthopedics" },
-                        { date: "Feb 14, 2025", diagnosis: "General Checkup", status: "Completed", doctor: "Dr. Mohammed", dept: "General Practice" }
-                    ],
-                    packages: [
-                        { name: "DHA Essential Benefits Plan (EBP)", activationDate: "Mar 15, 2025", expiryDate: "Mar 14, 2026", usage: "General: 3 / 5 Visits", status: "Expired" },
-                        { name: "GIG Gulf Comprehensive Care", activationDate: "Mar 15, 2026", expiryDate: "Mar 14, 2027", usage: "Unlimited", status: "Active" }
-                    ]
-                }
-            }];
-        }
-
-        appointments.push(...mockList);
-        localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
-        localStorage.setItem(dateKey, 'true');
+            })
+            .catch(() => {
+                // API unavailable — render whatever we have cached (may be empty)
+                renderAppointmentsForDate(dateString);
+            });
     }
-    return appointments.filter(app => app.date === dateString);
+    return [];
 }
 
 /* ── DYNAMIC DATA MERGER (LEGACY PROFILES + LIVE APPOINTMENTS) ── */

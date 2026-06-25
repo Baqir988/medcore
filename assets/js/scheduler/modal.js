@@ -486,7 +486,20 @@ function renderFooterButtons(app) {
 
 function toggleCheckIn(appId, newStatus) {
     const app = appointments.find(a => a.id === appId); if (!app) return;
-    app.status = newStatus; localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+    app.status = newStatus;
+    // Update localStorage immediately for responsive UI
+    localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+
+    // Sync to PHP backend
+    const fd = new FormData();
+    fd.append('action', 'checkin');
+    fd.append('id', appId);
+    fd.append('status', newStatus);
+    fetch('../api/appointments.php', { method: 'POST', body: fd })
+        .catch(() => {
+            // Already updated localStorage; fallback already applied
+        });
+
     if (newStatus === 'arrived') {
         addToLiveQueue(app);
         logActivity(`${app.patientName} checked in`, 'by Reception');
@@ -618,7 +631,49 @@ function saveAppointmentForm() {
         logActivity(`Booked appointment for ${name} with ${doc}`, 'by admin');
     }
 
+    // ── Optimistic local update ──
     localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+
+    // ── Build payload for PHP API ──
+    const fd = new FormData();
+    if (activeAppointmentId) {
+        fd.append('action', 'update');
+        fd.append('id', activeAppointmentId);
+    } else {
+        fd.append('action', 'create');
+    }
+    fd.append('patientName', name);
+    fd.append('nid', nid);
+    fd.append('dob', dob);
+    fd.append('phone', phone);
+    fd.append('resident', resident);
+    fd.append('doctorName', doc);
+    fd.append('date', date);
+    fd.append('startHour', timeParsed.hour);
+    fd.append('startMinute', timeParsed.minute);
+    fd.append('duration', duration);
+    fd.append('reason', reason);
+    fd.append('colIndex', colIndex);
+    fd.append('billingMode', currentBillingMode);
+    if (newPackageObj) {
+        fd.append('insuranceCompany', newPackageObj.name.split(' - ')[0]);
+        fd.append('insuranceType', newPackageObj.name.split(' - ')[1] || '');
+        fd.append('insuranceCopay', newPackageObj.usage.match(/(\d+)/)?.[1] || '0');
+        fd.append('insuranceExpiry', document.getElementById('reg-insurance-expiry').value);
+    }
+
+    fetch('../api/appointments.php', { method: 'POST', body: fd })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.app_uid && !activeAppointmentId) {
+                // Update the local appointment with the DB-generated ID
+                const lastApp = appointments[appointments.length - 1];
+                if (lastApp) lastApp.id = data.app_uid;
+                localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
+            }
+        })
+        .catch(() => { /* Local state already saved */ });
+
     renderAppointmentsForDate(formatDateKey(selectedDate));
     closeBookingPanel();
 }
@@ -628,8 +683,15 @@ function cancelAppointment(appId) {
     const app = appointments.find(a => a.id === appId);
     if (app) {
         app.status = 'cancelled';
+        // Optimistic local update
         localStorage.setItem('medcore_appointments', JSON.stringify(appointments));
         logActivity(`Cancelled appointment for ${app.patientName}`, 'by admin');
+
+        // Sync to PHP
+        const fd = new FormData();
+        fd.append('action', 'cancel');
+        fd.append('id', appId);
+        fetch('../api/appointments.php', { method: 'POST', body: fd }).catch(() => {});
     }
     renderAppointmentsForDate(formatDateKey(selectedDate));
     closeBookingPanel();
