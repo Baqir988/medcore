@@ -13,9 +13,13 @@ window.onload = () => {
     renderChecklist();
     renderActivityLog();
     renderWarnings();
+    loadDoctors();
 
     // Refresh metrics every 2 minutes
     setInterval(() => { syncMetricsFromDB(); renderActivityLog(); renderWarnings(); }, 120000);
+    
+    // Update doctor status every 30 seconds
+    setInterval(() => { loadTodayAppointments(); }, 30000);
 };
 
 function updateHeaderClock() {
@@ -203,6 +207,129 @@ function renderWarnings() {
             const colorMap = { 'warning': 'alert-warning', 'danger': 'alert-danger', 'info': 'alert-info' };
             const warnSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
             const infoSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
+
+            const alertSvg = (type) => type === 'warning' ? warnSvg : type === 'danger' ? warnSvg : infoSvg;
+            
+            warnings.forEach((warning, i) => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert-card ${colorMap[warning.severity] || 'alert-info'}`;
+                alertDiv.innerHTML = `
+                    <div class="alert-header">${alertSvg(warning.severity)} <span>${warning.title || warning.severity.toUpperCase()}</span></div>
+                    <div style="font-size: 0.75rem; line-height: 1.4;">${warning.message}</div>
+                `;
+                container.appendChild(alertDiv);
+                if (i >= 8) return;
+            });
+        });
+}
+
+// ── 6. DOCTOR STATUS ──
+let allDoctors = [];
+let appointmentsData = [];
+
+function loadDoctors() {
+    console.log('[DEBUG] loadDoctors called on dashboard');
+    fetch('./api/doctors.php?action=list')
+        .then(res => {
+            console.log('[DEBUG] API response status:', res.status);
+            return res.json();
+        })
+        .then(data => {
+            console.log('[DEBUG] API data received:', data);
+            if (!data.success) {
+                console.log('[DEBUG] API success=false, returning');
+                return;
+            }
+            allDoctors = data.doctors || [];
+            console.log('[DEBUG] allDoctors set:', allDoctors.length, 'doctors');
+            loadTodayAppointments();
+            renderDoctorStatus();
+        })
+        .catch(err => {
+            console.error('[DEBUG] Doctor API error:', err);
+            renderDoctorStatus();
+        });
+}
+
+function loadTodayAppointments() {
+    const today = new Date().toISOString().split('T')[0];
+    fetch(`./api/appointments.php?action=list&date=${today}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) return;
+            appointmentsData = data.appointments || [];
+            renderDoctorStatus();
+        })
+        .catch(() => {
+            appointmentsData = [];
+            renderDoctorStatus();
+        });
+}
+
+function isDoctorAvailable(doctorName) {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+    return !appointmentsData.some(app => {
+        if (!app.doctor_name || !app.doctor_name.includes(doctorName.split(' ')[1])) {
+            return false;
+        }
+
+        const startTimeInMinutes = app.start_hour * 60 + app.start_minute;
+        const endTimeInMinutes = startTimeInMinutes + (app.duration || 30);
+
+        return currentTimeInMinutes >= startTimeInMinutes && currentTimeInMinutes < endTimeInMinutes;
+    });
+}
+
+function renderDoctorStatus() {
+    console.log('[DEBUG] renderDoctorStatus called, allDoctors.length:', allDoctors.length);
+    const statusListContainer = document.getElementById('doctor-status-list');
+    console.log('[DEBUG] statusListContainer found:', !!statusListContainer);
+    
+    if (!statusListContainer || allDoctors.length === 0) {
+        console.log('[DEBUG] Early return: no container or no doctors');
+        return;
+    }
+
+    const availableCount = allDoctors.filter(doc => isDoctorAvailable(doc.name)).length;
+    const totalCount = allDoctors.length;
+
+    const countBadge = document.getElementById('doctor-available-count');
+    if (countBadge) {
+        countBadge.innerText = `${availableCount}/${totalCount} available`;
+    }
+
+    const html = allDoctors.map(doc => {
+        const isAvailable = isDoctorAvailable(doc.name);
+        const statusClass = isAvailable ? 'available' : 'busy';
+        const statusText = isAvailable ? 'AVAILABLE' : 'IN CONSULTATION';
+
+        return `
+            <div class="doctor-status-item">
+                <div class="doctor-info">
+                    <div class="status-indicator ${statusClass}"></div>
+                    <div>
+                        <div class="doctor-name">${doc.name}</div>
+                        <div class="doctor-specialty">${doc.specialty}</div>
+                    </div>
+                </div>
+                <div class="availability-badge ${statusClass}">${statusText}</div>
+            </div>
+        `;
+    }).join('');
+    
+    statusListContainer.innerHTML = html;
+}
+            </div>
+        `;
+    }).join('');
+    
+    statusListContainer.innerHTML = html;
+    console.log('[DEBUG] Rendered', allDoctors.length, 'doctors');
+}
 
             if (warnings.length === 0) {
                 container.innerHTML += `<div class="alert-card alert-success"><div class="alert-header">${infoSvg} All Clear</div><div class="alert-text">No active warnings. Clinic is running smoothly.</div></div>`;
